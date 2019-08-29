@@ -1,8 +1,6 @@
 use super::IntoStream;
 
-use std::future::Future;
 use std::pin::Pin;
-use std::task::{Context, Poll};
 
 /// Conversion from a `Stream`.
 ///
@@ -26,5 +24,6 @@ pub trait FromStream<T>: Sized + Unpin {
     /// ```
     fn from_stream<'a, S: IntoStream<Item = T>>(
         stream: S,
-    ) -> Pin<Box<dyn core::future::Future<Output = Self> + Send + 'a>>;
+    ) -> Pin<Box<dyn core::future::Future<Output = Self> + Send + 'a>>
+        where <S as IntoStream>::IntoStream: Send + 'a;
 }

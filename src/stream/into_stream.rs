@@ -1,4 +1,4 @@
-use super::Stream;
+use futures::stream::Stream;
 
 /// Conversion into a `Stream`.
 ///
@@ -18,16 +18,17 @@ pub trait IntoStream {
     type Item;
 
     /// Which kind of stream are we turning this into?
-    type IntoStream: Stream;
+    type IntoStream: Stream<Item = Self::Item> + Unpin + Send;
 
     /// Creates a stream from a value.
     fn into_stream(self) -> Self::IntoStream;
 }
 
-impl<I: Stream> IntoStream for I {
+impl<I: Stream + Unpin + Send> IntoStream for I {
     type Item = I::Item;
     type IntoStream = I;
 
+    #[inline]
     fn into_stream(self) -> I {
         self
     }
