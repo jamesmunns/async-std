@@ -25,5 +25,6 @@ pub trait FromStream<T>: Sized + Unpin {
     fn from_stream<'a, S: IntoStream<Item = T>>(
         stream: S,
     ) -> Pin<Box<dyn core::future::Future<Output = Self> + Send + 'a>>
-        where <S as IntoStream>::IntoStream: Send + 'a;
+    where
+        <S as IntoStream>::IntoStream: Send + 'a;
 }
