@@ -23,3 +23,12 @@ pub trait IntoStream {
     /// Creates a stream from a value.
     fn into_stream(self) -> Self::IntoStream;
 }
+
+impl<I: Stream> IntoStream for I {
+    type Item = I::Item;
+    type IntoStream = I;
+
+    fn into_stream(self) -> I {
+        self
+    }
+}

@@ -27,6 +27,7 @@ use cfg_if::cfg_if;
 
 use crate::future::Future;
 use crate::task::{Context, Poll};
+use super::FromStream;
 
 cfg_if! {
     if #[cfg(feature = "docs")] {
@@ -110,6 +111,14 @@ pub trait Stream {
             stream: self,
             remaining: n,
         }
+    }
+
+    /// Transforms a stream into a collection.
+    #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
+    fn collect<B: FromStream<Self::Item>>(self) -> B where
+        Self: Sized
+    {
+        FromStream::from_stream(self)
     }
 }
 
