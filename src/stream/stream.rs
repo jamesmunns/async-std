@@ -25,9 +25,9 @@ use std::pin::Pin;
 
 use cfg_if::cfg_if;
 
+use super::from_stream::{FromStream, FromStreamFuture};
 use crate::future::Future;
 use crate::task::{Context, Poll};
-use super::from_stream::{FromStream, FromStreamFuture};
 
 // Ret impl with lifetimes
 cfg_if! {
@@ -132,7 +132,8 @@ pub trait Stream {
 
     /// Transforms a stream into a collection.
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
-    fn collect<'a, B: FromStream<Self::Item>>(self) -> ret2!(FromStreamFuture, Self) where
+    fn collect<'a, B: FromStream<Self::Item>>(self) -> ret2!(FromStreamFuture, Self)
+    where
         Self: Unpin + Sized,
         Self: FromStream<<Self as Stream>::Item>,
     {

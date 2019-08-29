@@ -44,5 +44,5 @@ pub trait FromStream<T>: Sized + Unpin {
 #[allow(missing_debug_implementations)]
 #[allow(unused)]
 pub struct FromStreamFuture<S: Unpin + ?Sized> {
-    stream: S
+    stream: S,
 }
