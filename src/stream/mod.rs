@@ -25,8 +25,12 @@ pub use empty::{empty, Empty};
 pub use once::{once, Once};
 pub use repeat::{repeat, Repeat};
 pub use stream::{Stream, Take};
+pub use into_stream::IntoStream;
+pub use from_stream::FromStream;
 
 mod empty;
 mod once;
 mod repeat;
 mod stream;
+mod into_stream;
+mod from_stream;
