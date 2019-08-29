@@ -1,6 +1,6 @@
 use super::Stream;
 
-/// Conversion from a `Stream`.
+/// Conversion into a `Stream`.
 ///
 /// By implementing `FromStream` for a type, you define how it will be
 /// created from a stream. This is common for types which describe a
