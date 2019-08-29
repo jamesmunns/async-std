@@ -114,8 +114,22 @@ pub trait Stream {
     }
 
     /// Transforms a stream into a collection.
+    ///
+    /// ```
+    /// # fn main() { async_std::task::block_on(async {
+    /// #
+    /// use async_std::prelude::*;
+    /// use async_std::stream;
+    ///
+    /// let mut s = stream::repeat(9u8).take(3);
+    /// let buf: Vec<u8> = s.collect().await;
+    ///
+    /// assert_eq!(buf, vec![9; 3]);
+    /// #
+    /// # }) }
+    /// ```
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
-    fn collect<'a, B: FromStream<<Self as Stream>::Item>>(self) -> Pin<Box<dyn core::future::Future<Output = <Self as Stream>::Item> + Send + 'a>> 
+    fn collect<'a, B: FromStream<<Self as Stream>::Item>>(self) -> Pin<Box<dyn core::future::Future<Output = <Self as Stream>::Item> + Send + 'a>>
     where
         Self: Unpin + Sized + Send,
         Self: futures::stream::Stream,
