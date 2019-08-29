@@ -22,7 +22,7 @@
 //! ```
 
 pub use empty::{empty, Empty};
-pub use from_stream::{FromStream, FromStreamFuture};
+pub use from_stream::FromStream;
 pub use into_stream::IntoStream;
 pub use once::{once, Once};
 pub use repeat::{repeat, Repeat};

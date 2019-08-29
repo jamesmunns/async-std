@@ -1,21 +1,8 @@
-use cfg_if::cfg_if;
-
 use super::IntoStream;
 
-cfg_if! {
-    if #[cfg(feature = "docs")] {
-        #[doc(hidden)]
-        pub struct ImplFuture<'a, T>(std::marker::PhantomData<T>);
-
-        macro_rules! ret {
-            ($f:tt, $o:ty) => (ImplFuture<$o>);
-        }
-    } else {
-        macro_rules! ret {
-            ($f:tt, $o:ty) => ($f<Self>);
-        }
-    }
-}
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 /// Conversion from a `Stream`.
 ///
@@ -37,12 +24,7 @@ pub trait FromStream<T>: Sized + Unpin {
     ///
     /// // let _five_fives = async_std::stream::repeat(5).take(5);
     /// ```
-    fn from_stream<S: IntoStream<Item = T>>(stream: S) -> ret!(FromStreamFuture, Self);
-}
-
-#[doc(hidden)]
-#[allow(missing_debug_implementations)]
-#[allow(unused)]
-pub struct FromStreamFuture<S: Unpin + ?Sized> {
-    stream: S,
+    fn from_stream<'a, S: IntoStream<Item = T>>(
+        stream: S,
+    ) -> Pin<Box<dyn core::future::Future<Output = Self> + Send + 'a>>;
 }

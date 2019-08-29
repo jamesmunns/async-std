@@ -25,11 +25,10 @@ use std::pin::Pin;
 
 use cfg_if::cfg_if;
 
-use super::from_stream::{FromStream, FromStreamFuture};
+use super::from_stream::{FromStream};
 use crate::future::Future;
 use crate::task::{Context, Poll};
 
-// Ret impl with lifetimes
 cfg_if! {
     if #[cfg(feature = "docs")] {
         #[doc(hidden)]
@@ -41,22 +40,6 @@ cfg_if! {
     } else {
         macro_rules! ret {
             ($a:lifetime, $f:tt, $o:ty) => ($f<$a, Self>);
-        }
-    }
-}
-
-// Ret impl without lifetimes
-cfg_if! {
-    if #[cfg(feature = "docs")] {
-        #[doc(hidden)]
-        pub struct ImplFuture<'a, T>(std::marker::PhantomData<T>);
-
-        macro_rules! ret2 {
-            ($f:tt, $o:ty) => (ImplFuture<$o>);
-        }
-    } else {
-        macro_rules! ret2 {
-            ($f:tt, $o:ty) => ($f<Self>);
         }
     }
 }
@@ -132,7 +115,7 @@ pub trait Stream {
 
     /// Transforms a stream into a collection.
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
-    fn collect<'a, B: FromStream<Self::Item>>(self) -> ret2!(FromStreamFuture, Self)
+    fn collect<'a, B: FromStream<Self::Item>>(self) -> Pin<Box<dyn core::future::Future<Output = Self::Item> + Send + 'a>> 
     where
         Self: Unpin + Sized,
         Self: FromStream<<Self as Stream>::Item>,
