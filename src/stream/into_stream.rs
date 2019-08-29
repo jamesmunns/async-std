@@ -2,17 +2,17 @@ use super::Stream;
 
 /// Conversion into a `Stream`.
 ///
-/// By implementing `FromStream` for a type, you define how it will be
-/// created from a stream. This is common for types which describe a
+/// By implementing `IntoIterator` for a type, you define how it will be
+/// converted to an iterator. This is common for types which describe a
 /// collection of some kind.
 ///
-/// [`from_stream`]: #tymethod.from_iter
+/// [`from_stream`]: #tymethod.from_stream
 /// [`Stream`]: trait.Stream.html
-/// [`collect`]: trait.Iterator.html#method.collect
+/// [`collect`]: trait.Stream.html#method.collect
 ///
-/// See also: [`IntoStream`].
+/// See also: [`FromStream`].
 ///
-/// [`IntoStream`]: trait.IntoStream.html
+/// [`FromStream`]: trait.FromStream.html
 pub trait IntoStream {
     /// The type of the elements being iterated over.
     type Item;

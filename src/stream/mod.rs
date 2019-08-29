@@ -26,7 +26,7 @@ pub use once::{once, Once};
 pub use repeat::{repeat, Repeat};
 pub use stream::{Stream, Take};
 pub use into_stream::IntoStream;
-pub use from_stream::FromStream;
+pub use from_stream::{FromStream, FromStreamFuture};
 
 mod empty;
 mod once;

@@ -42,4 +42,6 @@ pub mod stream;
 pub mod sync;
 pub mod task;
 
+mod vec;
+
 pub(crate) mod utils;
