@@ -121,7 +121,7 @@ pub trait Stream {
     /// use async_std::prelude::*;
     /// use async_std::stream;
     ///
-    /// let mut s = stream::repeat(9u8).take(3);
+    /// let s = stream::repeat(9u8).take(3);
     /// let buf: Vec<u8> = s.collect().await;
     ///
     /// assert_eq!(buf, vec![9; 3]);
@@ -129,14 +129,11 @@ pub trait Stream {
     /// # }) }
     /// ```
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
-    fn collect<'a, B: FromStream<<Self as Stream>::Item>>(
-        self,
-    ) -> Pin<Box<dyn core::future::Future<Output = B> + Send + 'a>>
-    where
-        Self: Unpin + Sized + Send,
-        Self: futures::stream::Stream,
-        // <Self as Stream>::Item: super::FromStream<<Self as futures::stream::Stream>::Item>,
-        Self: 'a,
+    fn collect<'a, B: FromStream<<Self as Stream>::Item>>(self)
+    -> Pin<Box<dyn core::future::Future<Output = B> + Send + 'a>>
+        where Self: Sized + Send + Unpin + 'a,
+              Self: futures::stream::Stream,
+              B: FromStream<<Self as futures::stream::Stream>::Item>
     {
         FromStream::from_stream(self)
     }
