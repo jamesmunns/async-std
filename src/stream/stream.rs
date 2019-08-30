@@ -131,11 +131,11 @@ pub trait Stream {
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
     fn collect<'a, B: FromStream<<Self as Stream>::Item>>(
         self,
-    ) -> Pin<Box<dyn core::future::Future<Output = <Self as Stream>::Item> + Send + 'a>>
+    ) -> Pin<Box<dyn core::future::Future<Output = B> + Send + 'a>>
     where
         Self: Unpin + Sized + Send,
         Self: futures::stream::Stream,
-        <Self as Stream>::Item: super::FromStream<<Self as futures::stream::Stream>::Item>,
+        // <Self as Stream>::Item: super::FromStream<<Self as futures::stream::Stream>::Item>,
         Self: 'a,
     {
         FromStream::from_stream(self)

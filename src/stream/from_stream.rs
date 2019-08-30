@@ -22,9 +22,7 @@ pub trait FromStream<T>: Sized + Unpin {
     ///
     /// // let _five_fives = async_std::stream::repeat(5).take(5);
     /// ```
-    fn from_stream<'a, S: IntoStream<Item = T>>(
+    fn from_stream<'a, S: IntoStream<Item = T> + Send + 'a>(
         stream: S,
-    ) -> Pin<Box<dyn core::future::Future<Output = Self> + Send + 'a>>
-    where
-        <S as IntoStream>::IntoStream: Send + 'a;
+    ) -> Pin<Box<dyn core::future::Future<Output = Self> + Send + 'a>>;
 }
