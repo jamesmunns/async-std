@@ -164,8 +164,7 @@ pub trait Stream {
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
     fn collect<'a, B: FromStream<<Self as Stream>::Item>>(self) -> dyn_ret!('a, B)
     where
-        Self: Sized + Send + Unpin + 'a,
-        Self: futures::stream::Stream,
+        Self: futures::stream::Stream + Sized + Send + Unpin + 'a,
         B: FromStream<<Self as futures::stream::Stream>::Item>,
     {
         FromStream::from_stream(self)
