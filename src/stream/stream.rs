@@ -130,6 +130,22 @@ pub trait Stream {
 
     /// Transforms a stream into a collection.
     ///
+    /// `collect()` can take anything streamable, and turn it into a relevant
+    /// collection. This is one of the more powerful methods in the async
+    /// standard library, used in a variety of contexts.
+    ///
+    /// The most basic pattern in which `collect()` is used is to turn one
+    /// collection into another. You take a collection, call [`stream`] on it,
+    /// do a bunch of transformations, and then `collect()` at the end.
+    ///
+    /// Because `collect()` is so general, it can cause problems with type
+    /// inference. As such, `collect()` is one of the few times you'll see
+    /// the syntax affectionately known as the 'turbofish': `::<>`. This
+    /// helps the inference algorithm understand specifically which collection
+    /// you're trying to collect into.
+    ///
+    /// # Examples
+    ///
     /// ```
     /// # fn main() { async_std::task::block_on(async {
     /// #
@@ -143,6 +159,8 @@ pub trait Stream {
     /// #
     /// # }) }
     /// ```
+    ///
+    /// [`stream`]: trait.Stream.html#tymethod.next
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
     fn collect<'a, B: FromStream<<Self as Stream>::Item>>(self) -> dyn_ret!('a, B)
     where
