@@ -21,9 +21,7 @@ cfg_if! {
 
 impl<T: Unpin + Sized + Send> FromStream<T> for Vec<T> {
     #[inline]
-    fn from_stream<'a, S: IntoStream<Item = T>>(
-        stream: S,
-    ) -> dyn_ret!('a, Self)
+    fn from_stream<'a, S: IntoStream<Item = T>>(stream: S) -> dyn_ret!('a, Self)
     where
         <S as IntoStream>::IntoStream: Send + 'a,
     {
