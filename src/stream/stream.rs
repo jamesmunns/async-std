@@ -44,6 +44,21 @@ cfg_if! {
     }
 }
 
+cfg_if! {
+    if #[cfg(feature = "docs")] {
+        #[doc(hidden)]
+        pub struct DynFuture<'a, T>(std::marker::PhantomData<&'a T>);
+
+        macro_rules! dyn_ret {
+            ($a:lifetime, $o:ty) => (DynFuture<$a, $o>);
+        }
+    } else {
+        macro_rules! dyn_ret {
+            ($a:lifetime, $o:ty) => (Pin<Box<dyn core::future::Future<Output = $o> + Send + 'a>>)
+        }
+    }
+}
+
 /// An asynchronous stream of values.
 ///
 /// This trait is an async version of [`std::iter::Iterator`].
@@ -129,9 +144,7 @@ pub trait Stream {
     /// # }) }
     /// ```
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
-    fn collect<'a, B: FromStream<<Self as Stream>::Item>>(
-        self,
-    ) -> Pin<Box<dyn core::future::Future<Output = B> + Send + 'a>>
+    fn collect<'a, B: FromStream<<Self as Stream>::Item>>(self) -> dyn_ret!('a, B)
     where
         Self: Sized + Send + Unpin + 'a,
         Self: futures::stream::Stream,
