@@ -54,7 +54,7 @@ cfg_if! {
         }
     } else {
         macro_rules! dyn_ret {
-            ($a:lifetime, $o:ty) => (Pin<Box<dyn core::future::Future<Output = $o> + Send + 'a>>)
+            ($a:lifetime, $o:ty) => (Pin<Box<dyn core::future::Future<Output = $o> + 'a>>)
         }
     }
 }
@@ -162,9 +162,9 @@ pub trait Stream {
     ///
     /// [`stream`]: trait.Stream.html#tymethod.next
     #[must_use = "if you really need to exhaust the iterator, consider `.for_each(drop)` instead (TODO)"]
-    fn collect<'a, B: FromStream<<Self as Stream>::Item>>(self) -> dyn_ret!('a, B)
+    fn collect<'a, B>(self) -> dyn_ret!('a, B)
     where
-        Self: futures::stream::Stream + Sized + Send + Unpin + 'a,
+        Self: futures::stream::Stream + Sized + 'a,
         B: FromStream<<Self as futures::stream::Stream>::Item>,
     {
         FromStream::from_stream(self)
