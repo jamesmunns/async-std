@@ -89,7 +89,7 @@ cfg_if! {
     if #[cfg(any(feature = "unstable", feature = "docs"))] {
         use std::pin::Pin;
 
-        use crate::future::Future;
+        use std::future::Future;
         use crate::stream::FromStream;
     }
 }
