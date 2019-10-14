@@ -89,7 +89,7 @@ cfg_if! {
     if #[cfg(any(feature = "unstable", feature = "docs"))] {
         use std::pin::Pin;
 
-        use std::future::Future;
+        use crate::future::Future;
         use crate::stream::FromStream;
     }
 }
@@ -114,7 +114,7 @@ extension_trait! {
         https://docs.rs/futures-preview/0.3.0-alpha.17/futures/stream/trait.Stream.html
         [provided methods]: #provided-methods
     "#]
-    pub trait Stream [StreamExt: futures_core::stream::Stream] {
+    pub trait Stream {
         #[doc = r#"
             The type of items yielded by this stream.
         "#]
@@ -172,7 +172,9 @@ extension_trait! {
             ```
         "#]
         fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>>;
+    }
 
+    pub trait StreamExt: futures_core::stream::Stream {
         #[doc = r#"
             Advances the stream and returns the next value.
 

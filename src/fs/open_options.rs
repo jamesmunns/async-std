@@ -1,9 +1,9 @@
-use std::future::Future;
 use std::path::Path;
 
 use cfg_if::cfg_if;
 
 use crate::fs::File;
+use crate::future::Future;
 use crate::io;
 use crate::task::blocking;
 
