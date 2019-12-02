@@ -69,9 +69,7 @@ impl UdpSocket {
     /// ```
     pub async fn bind<A: ToSocketAddrs>(addrs: A) -> io::Result<UdpSocket> {
         let mut last_err = None;
-        let addrs = addrs
-            .to_socket_addrs()
-            .await?;
+        let addrs = addrs.to_socket_addrs().await?;
 
         for addr in addrs {
             match mio::net::UdpSocket::bind(&addr) {
@@ -102,7 +100,7 @@ impl UdpSocket {
     /// ```no_run
     /// # fn main() -> std::io::Result<()> { async_std::task::block_on(async {
     /// #
-    ///	use async_std::net::UdpSocket;
+    /// use async_std::net::UdpSocket;
     ///
     /// let socket = UdpSocket::bind("127.0.0.1:0").await?;
     /// let addr = socket.local_addr()?;

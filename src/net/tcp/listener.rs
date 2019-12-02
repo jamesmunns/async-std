@@ -1,3 +1,4 @@
+use std::fmt;
 use std::future::Future;
 use std::net::SocketAddr;
 use std::pin::Pin;
@@ -75,9 +76,7 @@ impl TcpListener {
     /// [`local_addr`]: #method.local_addr
     pub async fn bind<A: ToSocketAddrs>(addrs: A) -> io::Result<TcpListener> {
         let mut last_err = None;
-        let addrs = addrs
-            .to_socket_addrs()
-            .await?;
+        let addrs = addrs.to_socket_addrs().await?;
 
         for addr in addrs {
             match mio::net::TcpListener::bind(&addr) {
@@ -153,7 +152,10 @@ impl TcpListener {
     /// # Ok(()) }) }
     /// ```
     pub fn incoming(&self) -> Incoming<'_> {
-        Incoming(self)
+        Incoming {
+            listener: self,
+            future: None,
+        }
     }
 
     /// Returns the local address that this listener is bound to.
@@ -189,18 +191,29 @@ impl TcpListener {
 /// [`incoming`]: struct.TcpListener.html#method.incoming
 /// [`TcpListener`]: struct.TcpListener.html
 /// [`std::net::Incoming`]: https://doc.rust-lang.org/std/net/struct.Incoming.html
-#[derive(Debug)]
-pub struct Incoming<'a>(&'a TcpListener);
+pub struct Incoming<'a> {
+    listener: &'a TcpListener,
+    future: Option<Pin<Box<dyn Future<Output = io::Result<(TcpStream, SocketAddr)>> + 'a>>>,
+}
+
+impl Unpin for Incoming<'_> {}
 
 impl<'a> Stream for Incoming<'a> {
     type Item = io::Result<TcpStream>;
 
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let future = self.0.accept();
-        pin_utils::pin_mut!(future);
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        if self.future.is_none() {
+            self.future = Some(Box::pin(self.listener.accept()));
+        }
 
-        let (socket, _) = futures_core::ready!(future.poll(cx))?;
+        let (socket, _) = futures_core::ready!(self.future.as_mut().unwrap().as_mut().poll(cx))?;
         Poll::Ready(Some(Ok(socket)))
+    }
+}
+
+impl fmt::Debug for Incoming<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.pad("Incoming { .. }")
     }
 }
 
