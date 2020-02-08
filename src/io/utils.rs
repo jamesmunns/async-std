@@ -37,6 +37,7 @@ impl fmt::Display for VerboseError {
 
 impl StdError for VerboseError {
     fn description(&self) -> &str {
+        #[allow(deprecated)]
         self.source.description()
     }
 
