@@ -11,7 +11,10 @@ use crossbeam_deque::{Injector, Steal, Stealer, Worker};
 use crossbeam_utils::thread::scope;
 use once_cell::unsync::OnceCell;
 
-use crate::rt::Reactor;
+use crate::rt::{
+    Reactor,
+    tunables::TUNABLES,
+};
 use crate::task::Runnable;
 use crate::utils::{abort_on_panic, random, Spinlock};
 
@@ -100,6 +103,8 @@ impl Runtime {
 
     /// Runs the runtime on the current thread.
     pub fn run(&self) {
+        let idles = TUNABLES.blocking_detection_us_delay / TUNABLES.blocking_detection_us_interval;
+
         scope(|s| {
             let mut idle = 0;
             let mut delay = 0;
@@ -121,11 +126,11 @@ impl Runtime {
                 }
 
                 // Sleep for a bit longer if the scheduler state hasn't changed in a while.
-                if idle > 10 {
-                    delay = (delay * 2).min(10_000);
+                if idle > idles {
+                    delay = (delay * 2).min(TUNABLES.blocking_detection_us_delay);
                 } else {
                     idle += 1;
-                    delay = 1000;
+                    delay = TUNABLES.blocking_detection_us_interval;
                 }
 
                 thread::sleep(Duration::from_micros(delay));
@@ -138,23 +143,37 @@ impl Runtime {
     fn make_machines(&self) -> Vec<Arc<Machine>> {
         let mut sched = self.sched.lock().unwrap();
         let mut to_start = Vec::new();
+        let machines_ct = sched.machines.len();
 
-        // If there is a machine that is stuck on a task and not making any progress, steal its
-        // processor and set up a new machine to take over.
-        for m in &mut sched.machines {
-            if !m.progress.swap(false, Ordering::SeqCst) {
-                let opt_p = m.processor.try_lock().and_then(|mut p| p.take());
+        if !TUNABLES.blocking_detection_inhibit {
+            // If there is a machine that is stuck on a task and not making any progress, steal its
+            // processor and set up a new machine to take over.
+            for m in &mut sched.machines {
 
-                if let Some(p) = opt_p {
-                    *m = Arc::new(Machine::new(p));
-                    to_start.push(m.clone());
+                // If we have already hit max processes, do not attempt to schedule any more
+                // machines.
+                let new_machines_ct = machines_ct + to_start.len();
+                if new_machines_ct >= TUNABLES.max_processes {
+                    break;
+                }
+
+                if !m.progress.swap(false, Ordering::SeqCst) {
+                    let opt_p = m.processor.try_lock().and_then(|mut p| p.take());
+
+                    if let Some(p) = opt_p {
+                        *m = Arc::new(Machine::new(p));
+                        to_start.push(m.clone());
+                    }
                 }
             }
         }
 
+        let new_machines_ct = sched.machines.len() + to_start.len();
+        let inhibit_new = new_machines_ct >= TUNABLES.max_processes;
+
         // If no machine has been polling the reactor in a while, that means the runtime is
         // overloaded with work and we need to start another machine.
-        if !sched.polling {
+        if !inhibit_new && !sched.polling {
             if !sched.progress {
                 if let Some(p) = sched.processors.pop() {
                     let m = Arc::new(Machine::new(p));
